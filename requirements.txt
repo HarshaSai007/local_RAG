@@ -7,3 +7,4 @@ langchain_community
 requests
 PyPDF2
 chromadb
+streamlit-extras
