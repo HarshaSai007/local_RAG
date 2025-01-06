@@ -126,7 +126,7 @@ if prompt := st.chat_input("Ask about your documents..."):
                 messages = [
                     {
                         "role": "system",
-                        "content": f"""You are a helpful assistant using llama3.2. 
+                        "content": f"""You are a helpful assistant using Phi-3:medium. 
                         Analyze the following context and answer the user's question accurately.
                         If the answer cannot be found in the context, clearly state that.
                         
