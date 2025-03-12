@@ -1,0 +1,55 @@
+name: Manual and Scheduled Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        required: true
+        default: 'main'
+        type: choice
+        options:
+          - main
+          - demo
+          - production
+  schedule:
+    # Run at 1 AM UTC every day
+    - cron: '25 3 * * *'
+
+jobs:
+  test:
+    name: Test ${{ github.event.inputs.environment || 'staging' }} Environment
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Set environment variables
+        run: |
+          echo "API_URL=${{ secrets.API_URL }}" >> $GITHUB_ENV
+          echo "TEST_USERNAME=${{ secrets.TEST_USERNAME }}" >> $GITHUB_ENV
+          echo "TEST_PASSWORD=${{ secrets.TEST_PASSWORD }}" >> $GITHUB_ENV
+      
+      - name: Run environment tests
+        run: npm run test:e2e -- --config=jest-e2e-${{ github.event.inputs.environment || 'staging' }}.json
+      
+      - name: Generate report
+        if: always()
+        run: npm run generate-report
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.event.inputs.environment || 'staging' }}-test-results
+          path: reports/
